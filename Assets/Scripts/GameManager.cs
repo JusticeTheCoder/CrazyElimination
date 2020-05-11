@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class GameManager : MonoBehaviour
 {
@@ -8,7 +9,7 @@ public class GameManager : MonoBehaviour
     {
         EMPTY,
         NORMAL,
-        BARRIOR,
+        BARRIER,
         ROW_CLEAR,
         COLUMN_CLEAR,
         SPECIALDRAGON,
@@ -36,8 +37,16 @@ public class GameManager : MonoBehaviour
 
     //填充时间
     public float fillTime;
-    public GameObject gridPrefab;
 
+    public Text timeText;
+    public Text scoreText;
+    public Text gameoverText;
+    public GameObject gridPrefab;
+    private bool gameover;
+    private float gameTime = 90;
+    private int score = 0;
+    public AudioSource bgm;
+    public AudioSource disappearAudio;
     private GameDragon[,] dragons;
 
     private GameDragon pressedDragon;
@@ -49,6 +58,8 @@ public class GameManager : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        bgm.loop = true;
+        bgm.Play(0);
         dragonPrefabDict = new Dictionary<DragonType, GameObject>();
         for (int i = 0; i < dragonPrefabs.Length; i++)
         {
@@ -74,24 +85,67 @@ public class GameManager : MonoBehaviour
                 CreateNewDragon(x, y, DragonType.EMPTY);
             }
         }
-
-        Destroy(dragons[4, 4].gameObject);
-        CreateNewDragon(4, 4, DragonType.BARRIOR);
-
+        CreateBarrier();
         StartCoroutine(AllFill());
     }
 
+    public void Restart()
+    {
+        score = 0;
+        gameTime = 90;
+        gameover = false;
+        for (int x = 0; x < xColumn; x++)
+        {
+            for (int y = 0; y < yRow; y++)
+            {
+                Destroy(dragons[x, y].gameObject);
+                CreateNewDragon(x, y, DragonType.EMPTY);
+            }
+        }
+        CreateBarrier();
+        StartCoroutine(AllFill());
+    }
+
+    private void CreateBarrier()
+    {
+        int temp;
+        for (int x = 0; x < xColumn; x++)
+        {
+            for (int y = 0; y < yRow; y++)
+            {
+                temp = Random.Range(0, 99);
+                if(temp < 5)
+                {
+                    Destroy(dragons[x, y].gameObject);
+                    CreateNewDragon(x, y, DragonType.BARRIER);
+                }
+            }
+        }
+    }
+    void Update()
+    {
+        if (gameover)
+        {
+            gameoverText.color = new Color(255, 255, 255, 255);
+            return;
+        }
+            
+        if (gameTime < 0)
+        {
+            gameTime = 0;
+            gameover = true;
+            return;
+        }
+        gameoverText.color = new Color(255, 255, 255, 0);
+        gameTime -= Time.deltaTime;
+        timeText.text = gameTime.ToString("0");
+        scoreText.text = score.ToString();
+    }
     public Vector3 FixPosition(int x, int y)
     {
         return new Vector3(transform.position.x - xColumn / 2f + x, transform.position.y + yRow / 2f - y, 0);
     }
-
-    // Update is called once per frame
-    void Update()
-    {
-
-    }
-
+    
     //产生龙
     public GameDragon CreateNewDragon(int x, int y, DragonType type)
     {
@@ -108,10 +162,17 @@ public class GameManager : MonoBehaviour
     //全部填充
     public IEnumerator AllFill()
     {
-        while (Fill())
+        bool needRefill = true;
+        while (needRefill)
         {
             yield return new WaitForSeconds(fillTime);
+            while (Fill())
+            {
+                yield return new WaitForSeconds(fillTime);
+            }
+            needRefill = ClearMatched();
         }
+
     }
 
     public bool Fill()
@@ -207,26 +268,269 @@ public class GameManager : MonoBehaviour
         {
             dragons[dragon1.X, dragon1.Y] = dragon2;
             dragons[dragon2.X, dragon2.Y] = dragon1;
-            int tempX = dragon1.X;
-            int tempY = dragon1.Y;
-            dragon1.MovedComponent.Move(dragon2.X, dragon2.Y, fillTime);
-            dragon2.MovedComponent.Move(tempX, tempY, fillTime);
+            if (MatchDragons(dragon1, dragon2.X, dragon2.Y) != null || MatchDragons(dragon2, dragon1.X, dragon1.Y) != null)
+            {
+                int tempX = dragon1.X;
+                int tempY = dragon1.Y;
+                dragon1.MovedComponent.Move(dragon2.X, dragon2.Y, fillTime);
+                dragon2.MovedComponent.Move(tempX, tempY, fillTime);
+                ClearMatched();
+                StartCoroutine(AllFill());
+            }
+            else
+            {
+                dragons[dragon1.X, dragon1.Y] = dragon1;
+                dragons[dragon2.X, dragon2.Y] = dragon2;
+            }
+
         }
     }
 
+    //鼠标事件方法
+    #region
     public void PressDragon(GameDragon dragon)
     {
-        pressedDragon = dragon;
+        if(!gameover)
+            pressedDragon = dragon;
     }
 
     public void EnterDragon(GameDragon dragon)
     {
-        enteredDragon = dragon;
+        if (!gameover)
+            enteredDragon = dragon;
     }
 
     public void ReleaseDragon()
     {
-        if (IsFriend(pressedDragon, enteredDragon))
+        if (!gameover && IsFriend(pressedDragon, enteredDragon))
             SwapDragon(pressedDragon, enteredDragon);
     }
+    #endregion
+
+    //匹配和清除模块
+    #region
+    //匹配方法
+    public List<GameDragon> MatchDragons(GameDragon dragon, int newX, int newY)
+    {
+        if (dragon.CanColor())
+        {
+            ColorDragon.ColorType color = dragon.ColoredComponent.Color;
+            List<GameDragon> matchRowDragons = new List<GameDragon>();
+            List<GameDragon> matchLineDragons = new List<GameDragon>();
+            List<GameDragon> finishedMatching = new List<GameDragon>();
+            //行匹配
+            matchRowDragons.Add(dragon);
+
+            for (int i = 0; i <= 1; i++)
+            {
+                for (int xDistance = 1; xDistance < xColumn; xDistance++)
+                {
+                    int x;
+                    if (i == 0)
+                    {
+                        x = newX - xDistance;
+                    }
+                    else
+                    {
+                        x = newX + xDistance;
+                    }
+                    if (x < 0 || x >= xColumn)
+                    {
+                        break;
+                    }
+                    if (dragons[x, newY].CanColor() && dragons[x, newY].ColoredComponent.Color == color)
+                    {
+                        matchRowDragons.Add(dragons[x, newY]);
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+            }
+            if (matchRowDragons.Count >= 3)
+            {
+                foreach (var ele in matchRowDragons)
+                {
+                    finishedMatching.Add(ele);
+                }
+                foreach (var ele in matchRowDragons)
+                {
+                    for (int i = 0; i <= 1; i++)
+                    {
+                        matchLineDragons.Add(ele);
+                        for (int yDistance = 1; yDistance < yRow; yDistance++)
+                        {
+                            int y;
+                            if (i == 0)
+                            {
+                                y = newY - yDistance;
+                            }
+                            else
+                            {
+                                y = newY + yDistance;
+                            }
+                            if (y < 0 || y >= yRow)
+                            {
+                                break;
+                            }
+                            if (dragons[ele.X, y].CanColor() && dragons[ele.X, y].ColoredComponent.Color == color)
+                            {
+                                matchLineDragons.Add(dragons[ele.X, y]);
+                            }
+                            else
+                            {
+                                break;
+                            }
+                        }
+                    }
+                    if (matchLineDragons.Count < 2)
+                    {
+                        matchLineDragons.Clear();
+                    }
+                    else
+                    {
+                        foreach (var ele2 in matchLineDragons)
+                        {
+                            finishedMatching.Add(ele2);
+                        }
+                    }
+                }
+            }
+
+            if (finishedMatching.Count >= 3)
+            {
+                return finishedMatching;
+            }
+            matchRowDragons.Clear();
+            matchLineDragons.Clear();
+            //finishedMatching.Clear();
+            //列匹配
+            matchLineDragons.Add(dragon);
+            for (int i = 0; i <= 1; i++)
+            {
+                for (int yDistance = 1; yDistance < yRow; yDistance++)
+                {
+                    int y;
+                    if (i == 0)
+                    {
+                        y = newY - yDistance;
+                    }
+                    else
+                    {
+                        y = newY + yDistance;
+                    }
+                    if (y < 0 || y >= yRow)
+                    {
+                        break;
+                    }
+                    if (dragons[newX, y].CanColor() && dragons[newX, y].ColoredComponent.Color == color)
+                    {
+                        matchLineDragons.Add(dragons[newX, y]);
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+            }
+            if (matchLineDragons.Count >= 3)
+            {
+                foreach (var ele in matchLineDragons)
+                {
+                    finishedMatching.Add(ele);
+                }
+                foreach (var ele in matchLineDragons)
+                {
+                    matchRowDragons.Add(ele);
+                    for (int i = 0; i <= 1; i++)
+                    {
+                        for (int xDistance = 1; xDistance < xColumn; xDistance++)
+                        {
+                            int x;
+                            if (i == 0)
+                            {
+                                x = newX - xDistance;
+                            }
+                            else
+                            {
+                                x = newX + xDistance;
+                            }
+                            if (x < 0 || x >= xColumn)
+                            {
+                                break;
+                            }
+                            if (dragons[x, ele.Y].CanColor() && dragons[x, ele.Y].ColoredComponent.Color == color)
+                            {
+                                matchRowDragons.Add(dragons[x, ele.Y]);
+                            }
+                            else
+                            {
+                                break;
+                            }
+                        }
+                    }
+                    if (matchRowDragons.Count < 2)
+                    {
+                        matchRowDragons.Clear();
+                    }
+                    else
+                    {
+                        foreach (var ele2 in matchRowDragons)
+                        {
+                            finishedMatching.Add(ele2);
+                        }
+                    }
+                }
+            }
+            if (finishedMatching.Count >= 3)
+            {
+                return finishedMatching;
+            }
+        }
+        return null;
+    }
+
+    public bool ClearDragon(int x, int y)
+    {
+        if (dragons[x, y].CanClear() && !dragons[x, y].ClearComponent.IsClearing)
+        {
+            dragons[x, y].ClearComponent.Clear();
+            CreateNewDragon(x, y, DragonType.EMPTY);
+            return true;
+        }
+        return false;
+    }
+
+    //清除列表中所有的块
+    private bool ClearMatched()
+    {
+        bool needRefill = false;
+        for (int y = 0; y < yRow; y++)
+        {
+            for (int x = 0; x < xColumn; x++)
+            {
+                if (dragons[x, y].CanClear())
+                {
+                    var matchList = MatchDragons(dragons[x, y], x, y);
+                    if (matchList != null)
+                    {
+                        int eleCount = 0;
+                        foreach (var ele in matchList)
+                        {
+                            if (ClearDragon(ele.X, ele.Y))
+                            {
+                                ++eleCount;
+                                needRefill = true;
+                            }
+                        }
+                        score += 5 * (int)Mathf.Pow(2, eleCount);
+                    }
+                }
+            }
+        }
+        disappearAudio.Play(0);
+        return needRefill;
+    }
+    #endregion
 }

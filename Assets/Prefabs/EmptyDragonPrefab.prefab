@@ -10,7 +10,6 @@ GameObject:
   m_Component:
   - component: {fileID: 1976947284530264679}
   - component: {fileID: 5013671654667495980}
-  - component: {fileID: 6312577136427082058}
   m_Layer: 0
   m_Name: EmptyDragonPrefab
   m_TagString: Untagged
@@ -45,15 +44,3 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   gameManager: {fileID: 0}
---- !u!114 &6312577136427082058
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1976947284530264678}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9fdfb81b6ac9b294eaadf2b3ae70dd75, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 

@@ -9,6 +9,7 @@ public class GameDragon : MonoBehaviour
     private GameManager.DragonType type;
     private MovedDragon movedComponent;
     private ColorDragon coloredComponent;
+    private ClearDragon clearComponent;
     public int X
     {
         get
@@ -42,6 +43,7 @@ public class GameDragon : MonoBehaviour
     public GameManager.DragonType Type { get => type; }
     public MovedDragon MovedComponent { get => movedComponent; }
     public ColorDragon ColoredComponent { get => coloredComponent; }
+    public ClearDragon ClearComponent { get => clearComponent; }
 
     [HideInInspector]
     public GameManager gameManager;
@@ -54,10 +56,16 @@ public class GameDragon : MonoBehaviour
     {
         return coloredComponent != null;
     }
+
+    public bool CanClear()
+    {
+        return clearComponent != null;
+    }
     private void Awake()
     {
         movedComponent = GetComponent<MovedDragon>();
         coloredComponent = GetComponent<ColorDragon>();
+        clearComponent = GetComponent<ClearDragon>();
     }
     public void Init(int _x, int _y, GameManager _gameManager, GameManager.DragonType _type)
     {
