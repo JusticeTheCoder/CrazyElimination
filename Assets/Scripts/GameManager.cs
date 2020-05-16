@@ -365,8 +365,8 @@ public class GameManager : MonoBehaviour
                     }
 
                 }
-                //初始位置必须从newX开始算
-                matchedDragons.Add(dragons[newX, newY]);
+                //初始位置必须从newX开始算，甚至根本不用添加，会被扩展进来。
+                //matchedDragons.Add(dragons[newX, newY]);
                 for (int i = 0; i < 4; i++)
                 {
                     int currentX = newX + xStep[i];
