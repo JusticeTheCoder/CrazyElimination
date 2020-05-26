@@ -10,6 +10,8 @@ GameObject:
   m_Component:
   - component: {fileID: 3189328230973409456}
   - component: {fileID: 8266746317413570811}
+  - component: {fileID: 8499942108464845098}
+  - component: {fileID: 7565343975851381392}
   m_Layer: 0
   m_Name: BarrierDragonPrefab
   m_TagString: Untagged
@@ -46,6 +48,38 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   gameManager: {fileID: 0}
+--- !u!95 &8499942108464845098
+Animator:
+  serializedVersion: 3
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3189328230973409457}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: 812dba861d9f044388aed93bf62c797d, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorControllerStateOnDisable: 0
+--- !u!114 &7565343975851381392
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3189328230973409457}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7a0978e7f8c725b4bb93215b8da2c622, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  clearAnimation: {fileID: 7400000, guid: ec1991405ea434b068a20fd6472b1d8c, type: 2}
 --- !u!1 &3189328231472578960
 GameObject:
   m_ObjectHideFlags: 0

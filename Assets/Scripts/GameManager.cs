@@ -359,7 +359,10 @@ public class GameManager : MonoBehaviour
                         int currentY = matchedDragon.Y + yStep[i];
                         if (currentX < 0 || currentX >= xColumn || currentY < 0 || currentY >= yRow) continue;
                         GameDragon current = dragons[currentX, currentY];
-                        if (!current.CanColor() || current.ColoredComponent.Color != color) continue;
+                        if (!current.CanColor() || current.ColoredComponent.Color != color)
+                        {
+                            if (current.Type != DragonType.BARRIER) continue;
+                        }
                         if (matchedDragons.IndexOf(current) == -1 && extendedDragons.IndexOf(current)==-1)
                             extendedDragons.Add(current);
                     }
@@ -373,7 +376,10 @@ public class GameManager : MonoBehaviour
                     int currentY = newY + yStep[i];
                     if (currentX < 0 || currentX >= xColumn || currentY < 0 || currentY >= yRow) continue;
                     GameDragon current = dragons[currentX, currentY];
-                    if (!current.CanColor() || current.ColoredComponent.Color != color) continue;
+                    if (!current.CanColor() || current.ColoredComponent.Color != color)
+                    {
+                        if (current.Type != DragonType.BARRIER) continue;
+                    }
                     if (matchedDragons.IndexOf(current) == -1 && extendedDragons.IndexOf(current) == -1)
                         extendedDragons.Add(current);
                 }
@@ -389,6 +395,8 @@ public class GameManager : MonoBehaviour
 
     public bool ClearDragon(int x, int y)
     {
+        if (dragons[x, y].Type == DragonType.BARRIER)
+            print(2);
         if (dragons[x, y].CanClear() && !dragons[x, y].ClearComponent.IsClearing)
         {
             dragons[x, y].ClearComponent.Clear();
@@ -430,6 +438,9 @@ public class GameManager : MonoBehaviour
             if (ClearDragon(matchedDragon.X, matchedDragon.Y))
             {
                 count++;
+                if (matchedDragon.Type == DragonType.BARRIER)
+                    count++;
+                //  再加一个
                 score += 5 * (int)Mathf.Pow(2, count);
                 hasCleared = true;
             }
