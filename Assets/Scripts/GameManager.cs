@@ -12,8 +12,7 @@ public class GameManager : MonoBehaviour
         BARRIER,
         ROW_CLEAR,
         COLUMN_CLEAR,
-        SPECIALDRAGON,
-        COUNT //标记类型
+        TIME_ADD
     }
 
     //龙预制字典，通过种类来得到对应的游戏物体
@@ -200,6 +199,7 @@ public class GameManager : MonoBehaviour
                     }
                     else
                     {
+                        //这里的代码括号嵌套太深了 有时间帮忙优化一下
                         for (int down = -1; down <= 1; down++)
                         {
                             if (down != 0)
@@ -259,36 +259,44 @@ public class GameManager : MonoBehaviour
     }
 
     //是否相邻
-    private bool IsFriend(GameDragon dragon1, GameDragon dragon2)
+    private bool IsAdjacent(GameDragon dragon1, GameDragon dragon2)
     {
         return dragon1.X == dragon2.X && Mathf.Abs(dragon1.Y - dragon2.Y) == 1
             || dragon1.Y == dragon2.Y && Mathf.Abs(dragon1.X - dragon2.X) == 1;
+    }
+
+    private void PreSwapDragon(GameDragon dragon1, GameDragon dragon2)
+    {
+        int tmpX = dragon2.X, tmpY = dragon2.Y;
+        dragon2.X = dragon1.X; dragon2.Y = dragon1.Y;
+        dragon1.X = tmpX; dragon1.Y = tmpY;
+        dragons[dragon2.X, dragon2.Y] = dragon2;
+        dragons[dragon1.X, dragon1.Y] = dragon1;
     }
 
     public void SwapDragon(GameDragon dragon1, GameDragon dragon2)
     {
         if (dragon1.CanMove() && dragon2.CanMove())
         {
-            dragons[dragon1.X, dragon1.Y] = dragon2;
-            dragons[dragon2.X, dragon2.Y] = dragon1;
-            List<GameDragon> matchedDragons1 = MatchDragons(dragon1, dragon2.X, dragon2.Y);
-            List<GameDragon> matchedDragons2 = MatchDragons(dragon2, dragon1.X, dragon1.Y);
+
+            PreSwapDragon(dragon1, dragon2);
+            List<GameDragon> matchedDragons1 = MatchDragons(dragon1);
+            List<GameDragon> matchedDragons2 = MatchDragons(dragon2);
+            PreSwapDragon(dragon1, dragon2);
             if (matchedDragons1 != null || matchedDragons2 != null)
             {
                 int tempX = dragon1.X;
                 int tempY = dragon1.Y;
                 dragon1.MovedComponent.Move(dragon2.X, dragon2.Y, fillTime);
                 dragon2.MovedComponent.Move(tempX, tempY, fillTime);
+                dragons[dragon2.X, dragon2.Y] = dragon2;
+                dragons[dragon1.X, dragon1.Y] = dragon1;
+
                 if (matchedDragons1 != null)
                     ClearMatchedList(matchedDragons1, true);
                 if (matchedDragons2 != null)
                     ClearMatchedList(matchedDragons2, true);
                 StartCoroutine(AllFill());
-            }
-            else
-            {
-                dragons[dragon1.X, dragon1.Y] = dragon1;
-                dragons[dragon2.X, dragon2.Y] = dragon2;
             }
 
         }
@@ -310,7 +318,7 @@ public class GameManager : MonoBehaviour
 
     public void ReleaseDragon()
     {
-        if (!gameover && IsFriend(pressedDragon, enteredDragon))
+        if (!gameover && IsAdjacent(pressedDragon, enteredDragon))
             SwapDragon(pressedDragon, enteredDragon);
     }
     #endregion
@@ -318,7 +326,7 @@ public class GameManager : MonoBehaviour
     //匹配和清除模块
     #region
     //匹配方法
-    public List<GameDragon> MatchDragons(GameDragon dragon, int newX, int newY)
+    public List<GameDragon> MatchDragons(GameDragon dragon)
     {
         if (dragon.CanColor())
         {
@@ -326,6 +334,8 @@ public class GameManager : MonoBehaviour
             List<GameDragon> tempDragons = new List<GameDragon>();
             List<GameDragon> matchedDragons = new List<GameDragon>();
             List<GameDragon> extendedDragons = new List<GameDragon>();
+            int newX = dragon.X;
+            int newY = dragon.Y;
             for (int i = 0; i < 4; i++)
             {
                 if (i % 2 == 0)
@@ -370,19 +380,19 @@ public class GameManager : MonoBehaviour
                 }
                 //初始位置必须从newX开始算，甚至根本不用添加，会被扩展进来。
                 //matchedDragons.Add(dragons[newX, newY]);
-                for (int i = 0; i < 4; i++)
-                {
-                    int currentX = newX + xStep[i];
-                    int currentY = newY + yStep[i];
-                    if (currentX < 0 || currentX >= xColumn || currentY < 0 || currentY >= yRow) continue;
-                    GameDragon current = dragons[currentX, currentY];
-                    if (!current.CanColor() || current.ColoredComponent.Color != color)
-                    {
-                        if (current.Type != DragonType.BARRIER) continue;
-                    }
-                    if (matchedDragons.IndexOf(current) == -1 && extendedDragons.IndexOf(current) == -1)
-                        extendedDragons.Add(current);
-                }
+                //for (int i = 0; i < 4; i++)
+                //{
+                //    int currentX = newX + xStep[i];
+                //    int currentY = newY + yStep[i];
+                //    if (currentX < 0 || currentX >= xColumn || currentY < 0 || currentY >= yRow) continue;
+                //    GameDragon current = dragons[currentX, currentY];
+                //    if (!current.CanColor() || current.ColoredComponent.Color != color)
+                //    {
+                //        if (current.Type != DragonType.BARRIER) continue;
+                //    }
+                //    if (matchedDragons.IndexOf(current) == -1 && extendedDragons.IndexOf(current) == -1)
+                //        extendedDragons.Add(current);
+                //}
 
                 foreach (GameDragon extendedDragon in extendedDragons)
                     matchedDragons.Add(extendedDragon);
@@ -395,8 +405,6 @@ public class GameManager : MonoBehaviour
 
     public bool ClearDragon(int x, int y)
     {
-        if (dragons[x, y].Type == DragonType.BARRIER)
-            print(2);
         if (dragons[x, y].CanClear() && !dragons[x, y].ClearComponent.IsClearing)
         {
             dragons[x, y].ClearComponent.Clear();
@@ -416,7 +424,7 @@ public class GameManager : MonoBehaviour
             {
                 if (dragons[x, y].CanClear())
                 {
-                    var matchList = MatchDragons(dragons[x, y], x, y);
+                    var matchList = MatchDragons(dragons[x, y]);
                     if (matchList != null)
                     {
                         needRefill = ClearMatchedList(matchList, false);
