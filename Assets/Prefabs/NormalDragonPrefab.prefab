@@ -167,7 +167,7 @@ MonoBehaviour:
   - color: 4
     sprite: {fileID: 21300000, guid: 035b670911a8d4e45aa4b5f355ea0213, type: 3}
   - color: 5
-    sprite: {fileID: 21300000, guid: b5728e8fbbe4cb042a747efd9803d305, type: 3}
+    sprite: {fileID: 21300000, guid: 4e86acd68a35277489223db17ca6a335, type: 3}
 --- !u!65 &3579753894446957329
 BoxCollider:
   m_ObjectHideFlags: 0

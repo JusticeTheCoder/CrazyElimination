@@ -12,7 +12,6 @@ public class GameManager : MonoBehaviour
         BARRIER,
         ROW_CLEAR,
         COLUMN_CLEAR,
-        TIME_ADD
     }
 
     //龙预制字典，通过种类来得到对应的游戏物体
@@ -360,7 +359,7 @@ public class GameManager : MonoBehaviour
             }
             if (matchedDragons.Count != 0)
             {
-                //matchedDragons.Add(dragons[newX, newY]);
+                matchedDragons.Add(dragon);
                 foreach (GameDragon matchedDragon in matchedDragons)
                 {
                     for (int i = 0; i < 4; i++)
@@ -378,22 +377,6 @@ public class GameManager : MonoBehaviour
                     }
 
                 }
-                //初始位置必须从newX开始算，甚至根本不用添加，会被扩展进来。
-                //matchedDragons.Add(dragons[newX, newY]);
-                //for (int i = 0; i < 4; i++)
-                //{
-                //    int currentX = newX + xStep[i];
-                //    int currentY = newY + yStep[i];
-                //    if (currentX < 0 || currentX >= xColumn || currentY < 0 || currentY >= yRow) continue;
-                //    GameDragon current = dragons[currentX, currentY];
-                //    if (!current.CanColor() || current.ColoredComponent.Color != color)
-                //    {
-                //        if (current.Type != DragonType.BARRIER) continue;
-                //    }
-                //    if (matchedDragons.IndexOf(current) == -1 && extendedDragons.IndexOf(current) == -1)
-                //        extendedDragons.Add(current);
-                //}
-
                 foreach (GameDragon extendedDragon in extendedDragons)
                     matchedDragons.Add(extendedDragon);
             }
@@ -449,6 +432,9 @@ public class GameManager : MonoBehaviour
                 if (matchedDragon.Type == DragonType.BARRIER)
                     count++;
                 //  再加一个
+
+                if (matchedDragon.CanColor() && matchedDragon.ColoredComponent.Color == ColorDragon.ColorType.PINK)
+                    gameTime += 2;
                 score += 5 * (int)Mathf.Pow(2, count);
                 hasCleared = true;
             }

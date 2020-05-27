@@ -15,6 +15,7 @@ public class ColorDragon : MonoBehaviour
         ANY,
         COUNT
     }
+    //pink龙自带时间++效果
     [System.Serializable]
     public struct ColorSprite
     {
