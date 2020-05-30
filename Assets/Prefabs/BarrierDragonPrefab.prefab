@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 3189328230973409456}
   - component: {fileID: 8266746317413570811}
   - component: {fileID: 8499942108464845098}
-  - component: {fileID: 7565343975851381392}
+  - component: {fileID: 1137471706898407835}
   m_Layer: 0
   m_Name: BarrierDragonPrefab
   m_TagString: Untagged
@@ -67,7 +67,7 @@ Animator:
   m_HasTransformHierarchy: 1
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorControllerStateOnDisable: 0
---- !u!114 &7565343975851381392
+--- !u!114 &1137471706898407835
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
