@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
+
 
 public class GameManager : MonoBehaviour
 {
@@ -38,17 +40,21 @@ public class GameManager : MonoBehaviour
 
     //填充时间
     public float fillTime;
-
+    private bool hasChangedBGM;
+    public InputField nameField;
     public Text timeText;
     public Text scoreText;
     public Text gameoverText;
+    public Image submitDialog;
     public GameObject gridPrefab;
     private bool gameover;
     private float gameTime = 90;
     private int score = 0;
     public AudioSource bgm;
+    public AudioSource bgmOfGameOver;
     public AudioSource disappearAudio;
     private GameDragon[,] dragons;
+    private bool hasSubmitted;
 
     private GameDragon pressedDragon;
     private GameDragon enteredDragon;
@@ -59,6 +65,8 @@ public class GameManager : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        hasChangedBGM = false;
+        hasSubmitted = false;
         bgm.loop = true;
         bgm.Play(0);
         dragonPrefabDict = new Dictionary<DragonType, GameObject>();
@@ -92,8 +100,12 @@ public class GameManager : MonoBehaviour
 
     public void Restart()
     {
+        bgmOfGameOver.Stop();
+        bgm.Play();
+        hasChangedBGM = false;
+        hasSubmitted = false;
         score = 0;
-        gameTime = 90;
+        gameTime = 2;
         gameover = false;
         for (int x = 0; x < xColumn; x++)
         {
@@ -128,9 +140,17 @@ public class GameManager : MonoBehaviour
         if (gameover)
         {
             gameoverText.color = new Color(255, 255, 255, 255);
+            if (!hasSubmitted)
+                submitDialog.gameObject.SetActive(true);
+            if (!hasChangedBGM)
+            {
+                hasChangedBGM = true;
+                bgmOfGameOver.Play(0);
+            }
+
             return;
         }
-            
+        submitDialog.gameObject.SetActive(false);
         if (gameTime < 0)
         {
             gameTime = 0;
@@ -198,7 +218,7 @@ public class GameManager : MonoBehaviour
                     }
                     else
                     {
-                        //这里的代码括号嵌套太深了 有时间帮忙优化一下
+                        //TODO: 这里的代码括号嵌套太深了 有时间帮忙优化一下
                         for (int down = -1; down <= 1; down++)
                         {
                             if (down != 0)
@@ -444,4 +464,18 @@ public class GameManager : MonoBehaviour
         return hasCleared;
     }
     #endregion
+
+    public void OnClickSubmitButton()
+    {
+        Assets.Scripts.RankDAO.insertIntoTable(nameField.text, score);
+        print(nameField.text);
+        print(score);
+        submitDialog.gameObject.SetActive(false);
+        hasSubmitted = true;
+    }
+
+    public void OnClickGiveUp()
+    {
+        SceneManager.LoadScene("Main");
+    }
 }

@@ -22,6 +22,11 @@ public class TitleSceneLogic : MonoBehaviour
         SceneManager.LoadScene(0);
     }
 
+    public void StartHunterBoard()
+    {
+        SceneManager.LoadScene(1);
+    }
+
     public void ExitGame()
     {
         Application.Quit();
