@@ -9,7 +9,7 @@ namespace Assets.Scripts
 {
     class RankDAO
     {
-        static string dbconfig = "server=49.235.3.103;port=3306;user=root;password=2382525abc;Database=db_general";
+        static string dbconfig = "server=49.235.3.103;port=3306;user=root;password=2382525abc;Database=db_general;Charset=utf8";
         public static string selectFromDb()
         {
             MySqlConnection conn = new MySqlConnection(dbconfig);
@@ -47,10 +47,8 @@ namespace Assets.Scripts
                 conn.Open();
                 MySqlCommand cmd = new MySqlCommand("INSERT INTO tb_test(id, score) VALUES(@id, @score)", conn);
                 cmd.Prepare();
-                UTF8Encoding utf8 = new UTF8Encoding();
-                Byte[] encodedBytes = utf8.GetBytes(id);
-                id = utf8.GetString(encodedBytes);
-
+                /*Byte[] rowBytes = Encoding.Default.GetBytes(id);
+                id = Encoding.UTF8.GetString(rowBytes);*/
                 cmd.Parameters.AddWithValue("@id", id);
                 cmd.Parameters.AddWithValue("@score", score);
                 cmd.ExecuteNonQuery();

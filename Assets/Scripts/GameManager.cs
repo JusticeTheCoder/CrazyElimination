@@ -4,7 +4,6 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 
-
 public class GameManager : MonoBehaviour
 {
     public enum DragonType
@@ -55,7 +54,8 @@ public class GameManager : MonoBehaviour
     public AudioSource disappearAudio;
     private GameDragon[,] dragons;
     private bool hasSubmitted;
-
+    private Dictionary<ColorDragon.ColorType, int> probability;
+    private int probabilitySum;
     private GameDragon pressedDragon;
     private GameDragon enteredDragon;
     private void Awake()
@@ -68,7 +68,8 @@ public class GameManager : MonoBehaviour
         hasChangedBGM = false;
         hasSubmitted = false;
         bgm.loop = true;
-        bgm.Play(0);
+        bgm.Play(0);        
+
         dragonPrefabDict = new Dictionary<DragonType, GameObject>();
         for (int i = 0; i < dragonPrefabs.Length; i++)
         {
@@ -77,6 +78,30 @@ public class GameManager : MonoBehaviour
                 dragonPrefabDict.Add(dragonPrefabs[i].type, dragonPrefabs[i].prefab);
             }
         }
+
+        /**
+         * 说明：使用一个字典储存概率，概率为int类型，字典中所有value的和为probailitySum
+         * 实际概率 = value / probabilitySum
+         * 将所有类型的概率初始化为60，因为60的因数比较多，可以把特殊类型设定为其二分之一、三分之一...
+         * 现在将PINK设为15，实际上就是"其他概率相等，PINK是其他颜色概率的四分之一"
+         */
+        probability = new Dictionary<ColorDragon.ColorType, int>();
+        probabilitySum = 0;
+        GameObject tempDragon = Instantiate(dragonPrefabDict[DragonType.NORMAL], FixPosition(0, -1), Quaternion.identity);
+        ColorDragon temp = tempDragon.GetComponent<GameDragon>().ColoredComponent;
+
+        for (int i = 0; i < temp.NumColors; i++)
+        {
+            probability[temp.ColorSprites[i].color] = 60;
+        }
+        probability[ColorDragon.ColorType.PINK] = 15;
+        foreach (var i in probability)
+        {
+            probabilitySum += i.Value;
+        }
+        Destroy(tempDragon);
+
+
         for (int x = 0; x < xColumn; x++)
         {
             for (int y = 0; y < yRow; y++)
@@ -105,7 +130,7 @@ public class GameManager : MonoBehaviour
         hasChangedBGM = false;
         hasSubmitted = false;
         score = 0;
-        gameTime = 2;
+        gameTime = 90;
         gameover = false;
         for (int x = 0; x < xColumn; x++)
         {
@@ -270,11 +295,28 @@ public class GameManager : MonoBehaviour
                 dragons[x, 0] = newDragon.GetComponent<GameDragon>();
                 dragons[x, 0].Init(x, -1, this, DragonType.NORMAL);
                 dragons[x, 0].MovedComponent.Move(x, 0, fillTime);
-                dragons[x, 0].ColoredComponent.SetColor((ColorDragon.ColorType)Random.Range(0, dragons[x, 0].ColoredComponent.NumColors));
+                dragons[x, 0].ColoredComponent.SetColor(generateRandomColor());
                 hasNotFinished = true;
             }
         }
         return hasNotFinished;
+    }
+
+    /**
+     * 根据概率生成随机的颜色
+     * 例如：如果有三个颜色 Red 10, Yellow 20, Blue, 30
+     * 先生成一个[1, 60]的随机数，再遍历字典，看这个随机数落在哪个区间
+     * 颜色顺序不影响概率
+     */
+    private ColorDragon.ColorType generateRandomColor()
+    {
+        int random = Random.Range(1, probabilitySum);
+        foreach(var i in probability)
+        {
+            if (random <= i.Value) return i.Key;
+            random -= i.Value;
+        }
+        return 0;
     }
 
     //是否相邻
