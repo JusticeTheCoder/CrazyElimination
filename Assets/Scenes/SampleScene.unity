@@ -968,6 +968,7 @@ MonoBehaviour:
       type: 3}
   xColumn: 10
   yRow: 10
+  clockAnime: {fileID: 1581903053}
   fillTime: 0.1
   nameField: {fileID: 866144435}
   timeText: {fileID: 1733269520}
@@ -1270,6 +1271,26 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1548909116}
   m_CullTransparentMesh: 0
+--- !u!1 &1581903053 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 5466425267551964930, guid: 2327ed12a922a734ba136646ec0c8655,
+    type: 3}
+  m_PrefabInstance: {fileID: 5466425267574674129}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1581903054
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1581903053}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b723a40c5e99fec45912c9216a72ad33, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  clockAnimation: {fileID: 7400000, guid: dc95017fc10813842bf8d5ed97044f15, type: 2}
+  noAnimation: {fileID: 7400000, guid: ecc29098f5cf0ab459847348d062db74, type: 2}
 --- !u!224 &1623398482 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 2362656872929999709, guid: 0a755bc02b0e2514faf1b18abb385329,
@@ -1961,6 +1982,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Size.y
       value: 1.2
+      objectReference: {fileID: 0}
+    - target: {fileID: 5466425267551964932, guid: 2327ed12a922a734ba136646ec0c8655,
+        type: 3}
+      propertyPath: m_SortingOrder
+      value: 4
       objectReference: {fileID: 0}
     - target: {fileID: 5466425267551964935, guid: 2327ed12a922a734ba136646ec0c8655,
         type: 3}

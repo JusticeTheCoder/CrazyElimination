@@ -37,6 +37,7 @@ public class GameManager : MonoBehaviour
     public int xColumn;
     public int yRow;
 
+    public GameObject clockAnime;
     //填充时间
     public float fillTime;
     private bool hasChangedBGM;
@@ -125,6 +126,7 @@ public class GameManager : MonoBehaviour
 
     public void Restart()
     {
+        clockAnime.GetComponent<AnimationManager>().ClockPlay();
         bgmOfGameOver.Stop();
         bgm.Play();
         hasChangedBGM = false;
