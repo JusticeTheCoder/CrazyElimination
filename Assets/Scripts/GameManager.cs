@@ -37,6 +37,7 @@ public class GameManager : MonoBehaviour
     public int xColumn;
     public int yRow;
 
+    public Camera mainCamera;
     public GameObject clockAnime;
     //填充时间
     public float fillTime;
@@ -492,6 +493,7 @@ public class GameManager : MonoBehaviour
         if(color == ColorDragon.ColorType.RED)
         {
             clockAnime.GetComponent<AnimationManager>().AnimationPlay("explode");
+            ShakeTheCamera.isshakeCamera = true;
         }
         else if(color == ColorDragon.ColorType.PINK)
         {
