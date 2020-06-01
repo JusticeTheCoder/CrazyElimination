@@ -434,7 +434,7 @@ public class GameManager : MonoBehaviour
                         GameDragon current = dragons[currentX, currentY];
                         if (!current.CanColor() || current.ColoredComponent.Color != color)
                         {
-                            if (current.Type != DragonType.BARRIER) continue;
+                            if (current.Type != DragonType.BARRIER && color != ColorDragon.ColorType.RED) continue;
                         }
                         if (matchedDragons.IndexOf(current) == -1 && extendedDragons.IndexOf(current)==-1)
                             extendedDragons.Add(current);
