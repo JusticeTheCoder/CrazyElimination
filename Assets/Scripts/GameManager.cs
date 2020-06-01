@@ -96,6 +96,7 @@ public class GameManager : MonoBehaviour
             probability[temp.ColorSprites[i].color] = 60;
         }
         probability[ColorDragon.ColorType.PINK] = 15;
+        probability[ColorDragon.ColorType.RED] = 15;
         foreach (var i in probability)
         {
             probabilitySum += i.Value;
@@ -125,8 +126,7 @@ public class GameManager : MonoBehaviour
     }
 
     public void Restart()
-    {
-        clockAnime.GetComponent<AnimationManager>().ClockPlay();
+    {        
         bgmOfGameOver.Stop();
         bgm.Play();
         hasChangedBGM = false;
@@ -434,7 +434,7 @@ public class GameManager : MonoBehaviour
                         GameDragon current = dragons[currentX, currentY];
                         if (!current.CanColor() || current.ColoredComponent.Color != color)
                         {
-                            if (current.Type != DragonType.BARRIER) continue;
+                           if (current.Type != DragonType.BARRIER && color != ColorDragon.ColorType.RED) continue;
                         }
                         if (matchedDragons.IndexOf(current) == -1 && extendedDragons.IndexOf(current)==-1)
                             extendedDragons.Add(current);
@@ -488,6 +488,15 @@ public class GameManager : MonoBehaviour
     {
         bool hasCleared = false;
         int count = 0;
+        ColorDragon.ColorType color = matchedDragons[0].ColoredComponent.Color;
+        if(color == ColorDragon.ColorType.RED)
+        {
+            clockAnime.GetComponent<AnimationManager>().AnimationPlay("explode");
+        }
+        else if(color == ColorDragon.ColorType.PINK)
+        {
+            clockAnime.GetComponent<AnimationManager>().AnimationPlay();
+        }
         foreach (GameDragon matchedDragon in matchedDragons)
         {
             if (ClearDragon(matchedDragon.X, matchedDragon.Y))
